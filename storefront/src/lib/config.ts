@@ -1,8 +1,12 @@
-import Medusa from "@medusajs/js-sdk"
+import { getLocaleHeader } from "@lib/util/get-locale-header"
+import Medusa, { FetchArgs, FetchInput } from "@medusajs/js-sdk"
 
 // Defaults to standard port for Medusa server
-const MEDUSA_BACKEND_URL =
-  process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
+let MEDUSA_BACKEND_URL = "http://localhost:9000"
+
+if (process.env.MEDUSA_BACKEND_URL) {
+  MEDUSA_BACKEND_URL = process.env.MEDUSA_BACKEND_URL
+}
 
 export const sdk = new Medusa({
   baseUrl: MEDUSA_BACKEND_URL,
@@ -10,52 +14,26 @@ export const sdk = new Medusa({
   publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
 })
 
-type FetchQueryOptions = Omit<RequestInit, "headers" | "body"> & {
-  headers?: Record<string, string | null | { tags: string[] }>
-  query?: Record<string, string | number>
-  body?: Record<string, any>
-}
+const originalFetch = sdk.client.fetch.bind(sdk.client)
 
-export async function fetchQuery(
-  url: string,
-  { method, query, headers, body }: FetchQueryOptions
-) {
-  const params = Object.entries(query || {}).reduce(
-    (acc, [key, value], index) => {
-      if (value && value !== undefined) {
-        const queryLength = Object.values(query || {}).filter((i) => !!i).length
-        acc += `${key}=${value}${index + 1 <= queryLength ? "&" : ""}`
-      }
-      return acc
-    },
-    ""
-  )
-
-  const res = await fetch(
-    `${MEDUSA_BACKEND_URL}${url}${params && `?${params}`}`,
-    {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        "x-publishable-api-key": process.env
-          .NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY as string,
-        ...headers,
-      },
-      body: body ? JSON.stringify(body) : null,
-    }
-  )
-
-  let data
+sdk.client.fetch = async <T>(
+  input: FetchInput,
+  init?: FetchArgs
+): Promise<T> => {
+  const headers = init?.headers ?? {}
+  let localeHeader: Record<string, string | null> | undefined
   try {
-    data = await res.json()
-  } catch {
-    data = { message: res.statusText || "Unknown error" }
-  }
+    localeHeader = await getLocaleHeader()
+    headers["x-medusa-locale"] ??= localeHeader["x-medusa-locale"]
+  } catch {}
 
-  return {
-    ok: res.ok,
-    status: res.status,
-    error: res.ok ? null : { message: data?.message },
-    data: res.ok ? data : null,
+  const newHeaders = {
+    ...localeHeader,
+    ...headers,
   }
+  init = {
+    ...init,
+    headers: newHeaders,
+  }
+  return originalFetch(input, init)
 }
