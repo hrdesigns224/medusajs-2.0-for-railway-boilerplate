@@ -25,13 +25,13 @@ export default async function Home({
   }
 
   return (
-    <>
+    <div className="bg-gradient-to-b from-white via-slate-50 to-slate-100">
       <Hero />
-      <div className="py-12">
-        <ul className="flex flex-col gap-x-6">
+      <div className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+        <ul className="flex flex-col">
           <FeaturedProducts collections={collections} region={region} />
         </ul>
       </div>
-    </>
+    </div>
   )
 }
