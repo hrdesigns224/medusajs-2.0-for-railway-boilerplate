@@ -34,6 +34,13 @@ module.exports = {
           80: "#1F2937",
           90: "#111827",
         },
+        card: {
+          gold: "#FFD700",
+          silver: "#C0C0C0",
+          bronze: "#CD7F32",
+          rare: "#9333EA",
+          legendary: "#F59E0B",
+        },
       },
       borderRadius: {
         none: "0px",
