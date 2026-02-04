@@ -1,14 +1,16 @@
 "use client"
 
-import { setAddresses } from "@lib/data/cart"
-import compareAddresses from "@lib/util/compare-addresses"
 import { CheckCircleSolid } from "@medusajs/icons"
-import { HttpTypes } from "@medusajs/types"
 import { Heading, Text, useToggleState } from "@medusajs/ui"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+
 import Divider from "@modules/common/components/divider"
 import Spinner from "@modules/common/icons/spinner"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useActionState } from "react"
+
+import { setAddresses } from "@lib/data/cart"
+import compareAddresses from "@lib/util/compare-addresses"
+import { HttpTypes } from "@medusajs/types"
+import { useFormState } from "react-dom"
 import BillingAddress from "../billing_address"
 import ErrorMessage from "../error-message"
 import ShippingAddress from "../shipping-address"
@@ -37,7 +39,7 @@ const Addresses = ({
     router.push(pathname + "?step=address")
   }
 
-  const [message, formAction] = useActionState(setAddresses, null)
+  const [message, formAction] = useFormState(setAddresses, null)
 
   return (
     <div className="bg-white">
@@ -144,7 +146,7 @@ const Addresses = ({
 
                     {sameAsBilling ? (
                       <Text className="txt-medium text-ui-fg-subtle">
-                        Billing and delivery address are the same.
+                        Billing- and delivery address are the same.
                       </Text>
                     ) : (
                       <>
